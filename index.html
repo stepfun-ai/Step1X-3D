@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="description" content="Step1X-3D: Towards High-Fidelity and Controllable Generation of
+  Textured 3D Assets">
+  <meta name="keywords" content="Texturing, Diffusion Models, Synchronization">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="google-site-verification" content="STD7CbpZGbnFAizPPZgrpJu7WrW0DQMVRmLU_BeC5WU" />
+  <link rel="shortcut icon" href="./assets/logo.png" type="image/x-icon">
+  <title>Step1X-3D: Towards High-Fidelity and Controllable Generation of
+    Textured 3D Assets</title>
+
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" />
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css" />
+  <link rel="stylesheet" href="./staticcss/index.css" />
+  <link rel="icon" href="./staticimages/test3.png" />
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+  <script defer src="./staticjs/fontawesome.all.min.js"></script>
+  <script src="./staticjs/bulma-slider.min.js"></script>
+  <script src="./staticjs/index.js"></script>
+
+
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.1.1/model-viewer.min.js"></script>
+  <style>
+    body {
+      margin: auto;
+      font-family: Arial, sans-serif;
+    }
+
+    nav {
+      position: auto;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background-color: ghostwhite;
+      z-index: 100;
+      box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.3);
+    }
+
+    nav ul {
+      padding: 0;
+      margin: auto;
+      list-style: none;
+      display: flex;
+      justify-content: center;
+    }
+
+    nav ul li {
+      margin: auto;
+    }
+
+    nav ul li a {
+      display: block;
+      padding: 5px;
+      /*      color: #fff;*/
+      text-decoration: none;
+      transition: background-color 0.3s;
+    }
+
+    nav ul li a:hover {
+      background-color: #555;
+    }
+
+    /* iframe 容器 */
+    .iframe-container {
+      position: relative;
+      display: inline-block;
+    }
+
+    /* 提示器 */
+    .tooltip {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      padding: 10px;
+      background-color: #333;
+      color: #fff;
+      font-size: 12px;
+      white-space: nowrap;
+      transform: translate(-50%, -50%);
+      visibility: visible;
+      opacity: 1;
+      transition: visibility 0.2s, opacity 0.2s;
+    }
+
+    /* 鼠标悬停在 iframe 容器时隐藏提示器 */
+    .iframe-container:hover .tooltip {
+      visibility: hidden;
+      opacity: 0;
+    }
+
+    .title {
+      font-size: 41px;
+    }
+
+    /*  teaser font-size  */
+    .teaserTitle {
+      font-size: 76px;
+    }
+
+    .subTeaserTitle {
+      font-size: 15px;
+    }
+
+    .carousel-indicators {
+      bottom: -26px;
+    }
+
+    .carousel-control.left,
+    .carousel-control.right {
+      background-image: none !important;
+      filter: none !important;
+      width: 20px;
+    }
+
+    .columns {
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    .column {
+      flex: 1;
+      min-width: 150px;
+    }
+
+    .carousel-indicators ol {
+      width: 100%;
+    }
+
+    .carousel-indicators li {
+      height: 3px !important;
+      border-radius: 0px !important;
+      width: 25%;
+    }
+  </style>
+
+  <style>
+    .render_wrapper {
+      position: relative;
+      height: 300px;
+    }
+
+    .render_wrapper_small {
+      position: relative;
+      height: 200px;
+    }
+
+    .render_div {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    #interpolation-image-wrapper-car {
+      text-align: center;
+    }
+
+    #interpolation-image-wrapper-chair {
+      text-align: center;
+    }
+
+    .nested-columns {
+      margin-bottom: 0 !important;
+    }
+  </style>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/index.js"></script>
+</head>
+
+<body>
+
+  <section class="hero">
+    <div class="hero-body">
+      <div class="container is-max-desktop">
+        <div class="columns is-centered">
+          <div class="column has-text-centered">
+            <h1 class="title is-0 publication-title">
+              <span style="color: #1E90FF;">Step1X-3D</span>: Towards High-Fidelity and Controllable Generation of
+              Textured 3D Assets <br />
+            </h1>
+
+            <div class="is-size-4 publication-authors">
+              <span class="author-block">
+                Step1X-3D Team <sup></sup>,</span>
+              <span class="author-block">
+                LightIllusions Team</span>
+            </div>
+
+
+
+            <div class="column has-text-centered">
+              <div class="publication-links">
+                <span class="link-block">
+                  <a class="external-link button is-normal is-rounded is-dark" href="https://arxiv.org/abs/2505.07747">
+                    <span class="icon">
+                      <i class="ai ai-arxiv"></i>
+                    </span>
+                    <span>arXiv</span>
+                  </a>
+                </span>
+
+                <!-- Github Link. -->
+                <span class="link-block">
+                  <a href="https://github.com/stepfun-ai/Step1X-3D"
+                    class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon">
+                      <i class="fab fa-github" style="color: white;"></i>
+                    </span>
+                    <span>Code</span>
+                  </a>
+                </span>
+                <!-- Weights Link. -->
+                <span class="link-block">
+                  <a href="https://huggingface.co/stepfun-ai/Step1X-3D"
+                    class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon">
+                      <img src="https://huggingface.co/front/assets/huggingface_logo.svg" alt="Hugging Face Logo"
+                        style="width: 20px; height: 20px;">
+                    </span>
+                    <span>Models</span>
+                  </a>
+                </span>
+
+                <span class="link-block">
+                  <a href="https://huggingface.co/spaces/stepfun-ai/Step1X-3D"
+                    class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon">
+                      <svg class="size-8 mr-1.5 dark:mr-2 dark:drop-shadow-md" xmlns="http://www.w3.org/2000/svg"
+                        xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" focusable="false" role="img"
+                        width="28" height="28" preserveAspectRatio="xMidYMid meet" viewBox="0 0 39 40">
+                        <path
+                          d="M6.3712 2.04427C3.7183 2.04427 1.56771 4.19486 1.56771 6.84776V18.3546V18.6544V32.7341C1.56771 35.3868 3.71818 37.5377 6.3712 37.5377H17.878H20.7507H32.2575C34.9104 37.5377 37.0612 35.387 37.0612 32.7341V21.6204C37.0612 20.177 36.4252 18.8839 35.4189 18.004C36.4576 16.3895 37.0612 14.4666 37.0612 12.4046C37.0612 6.68274 32.4225 2.04427 26.7007 2.04427C24.6388 2.04427 22.7159 2.64776 21.1014 3.68647C20.2214 2.6802 18.9282 2.04427 17.4849 2.04427H6.3712Z"
+                          fill="black" class="stroke-white dark:stroke-white/10" stroke-width="3.07552"></path>
+                        <path
+                          d="M9.56855 23.5001C8.8406 23.5001 8.25047 24.0902 8.25047 24.8182V29.5361C8.25047 30.2641 8.8406 30.8542 9.56855 30.8542H14.2864C15.0144 30.8542 15.6045 30.2641 15.6045 29.5361V24.8182C15.6045 24.0902 15.0143 23.5001 14.2864 23.5001H9.56855Z"
+                          fill="#FF3270"></path>
+                        <path
+                          d="M24.3409 23.5001C23.613 23.5001 23.0228 24.0902 23.0228 24.8182V29.5361C23.0228 30.2641 23.613 30.8542 24.3409 30.8542H29.0588C29.7868 30.8542 30.3769 30.2641 30.3769 29.5361V24.8182C30.3769 24.0902 29.7868 23.5001 29.0588 23.5001H24.3409Z"
+                          fill="#861FFF"></path>
+                        <path
+                          d="M9.56855 8.72815C8.8406 8.72815 8.25047 9.31827 8.25047 10.0462V14.7641C8.25047 15.4921 8.8406 16.0822 9.56855 16.0822H14.2864C15.0144 16.0822 15.6045 15.4921 15.6045 14.7641V10.0462C15.6045 9.31827 15.0143 8.72815 14.2864 8.72815H9.56855Z"
+                          fill="#097EFF"></path>
+                        <path
+                          d="M26.6999 8.72815C24.6692 8.72815 23.0228 10.3744 23.0228 12.4052C23.0228 14.4359 24.6692 16.0822 26.6999 16.0822C28.7306 16.0822 30.3769 14.4359 30.3769 12.4052C30.3769 10.3744 28.7306 8.72815 26.6999 8.72815Z"
+                          fill="#FFD702"></path>
+                      </svg>
+                    </span>
+                    <span>Demo</span>
+                  </a>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- 3.1 Banner -->
+  <section class="section">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered has-text-centered" style="margin-top: -20px">
+        <video src="./assets/step1x-3d-video.mp4" width="100%" autoplay loop muted playsinline></video>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="section"></section>
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered" style="margin-top: -80px">
+      <div class="column is-four-fifths">
+        <h2 class="title is-2">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            While generative artificial intelligence has advanced significantly across text, image, audio, and video domains, 3D generation remains comparatively underdeveloped due to fundamental challenges such as data scarcity, algorithmic limitations, and ecosystem fragmentation. To this end, we present Step1X-3D, an open framework addressing these challenges through: (1) a rigorous data curation pipeline processing >5M assets to create a 2M high-quality dataset with standardized geometric and textural properties; (2) a two-stage 3D-native architecture combining a hybrid VAE-DiT geometry generator with an SD-XL-based texture synthesis module; and (3) the full open-source release of models, training code, and adaptation modules. For geometry generation, the hybrid VAE-DiT component produces watertight TSDF representations by employing perceiver-based latent encoding with sharp edge sampling for detail preservation. The SD-XL-based texture synthesis module then ensures cross-view consistency through geometric conditioning and latent-space synchronization. Benchmark results demonstrate state-of-the-art performance that exceeds existing open-source methods, while also achieving competitive quality with proprietary solutions. Notebly, the framework uniquely bridges 2D and 3D generation paradigms by supporting direct transfer of 2D control techniques~(e.g., LoRA) to 3D synthesis. By simultaneously advancing data quality, algorithmic fidelity, and reproducibility, Step1X-3D aims to establish new standards for open research in controllable 3D asset generation.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  </section>
+
+  <section class="hero" id="teaser" style="margin-bottom: 50px; margin-top: 50px;">
+    <div class="container is-max-desktop">
+    <!-- Overview. -->
+    <div class="columns is-centered" style="margin-top: 15px">
+        <div class="column is-full-width">
+            <h2 class="title is-4">Data curation</h2>
+            <div class="columns is-centered" style="text-align: center">
+                <div class="column" style="align-self: center">
+                    <img src="./assets/images/data_curation.png" alt="sequencing_small">
+                </div>
+            </div>
+            <div class="content has-text-justified" style="padding-top: 15px">
+              Our curation pipeline consists of three main stages. First, we filter out low-quality data by removing assets with poor textures, incorrect normals, transparent materials or single surface. Second, we convert non-watertight meshes into watertight representations to enable proper geometry supervision. Third, we uniformly sample points on the surface along with their normals to provide comprehensive coverage for the VAE and diffusion model training. Through our comprehensive data processing pipeline, we successfully curated roughly 2 million high-quality 3D assets from multiple sources: extracting 320k valid samples from the original Objaverse dataset, obtaining an additional 480k from Objaverse-XL, and combining these with carefully selected data from ABO, 3D-FUTURE, and some internal created data.
+            </div>
+        </div>
+    </div>
+  </section>
+
+  <section class="hero" id="teaser" style="margin-bottom: 50px; margin-top: 50px;">
+    <div class="container is-max-desktop">
+    <!-- Overview. -->
+    <div class="columns is-centered" style="margin-top: 15px">
+        <div class="column is-full-width">
+            <h2 class="title is-4">Step1X-3D method overview</h2>
+            <div class="columns is-centered" style="text-align: center">
+                <div class="column" style="align-self: center">
+                    <img src="./assets/images/framework.jpeg" alt="sequencing_small">
+                </div>
+            </div>
+            <div class="content has-text-justified" style="padding-top: 15px">
+              Step1X-3D employs: (1) a geometry generation stage using a hybrid 3D VAE-DiT diffusion model to produce Truncated Signed Distance Function (TSDF) (later meshed via marching cubes), and (2) a texture synthesis stage leveraging an SD-XL-fine-tuned multi-view generator. This generator conditions on the produced geometry and input images to produce view-consistent textures that are then baked onto the mesh. This integrated approach aims to advance the field by simultaneously resolving critical challenges in data quality, geometric precision, and texture fidelity, while establishing new benchmarks for open, reproducible research in 3D generation.
+            </div>
+        </div>
+    </div>
+  </section>
+
+      <section class="hero" id="teaser" style="margin-bottom: 50px; margin-top: 50px;">
+        <div class="container is-max-desktop">
+            <!-- Overview. -->
+            <h3 class="title is-4">Gallery of generated 3D untextured and textured mesh assets by Step1X-3D</h3>
+            
+            <!-- 2行6列布局开始 -->
+            <div class="gallery-grid" style="display: grid; grid-template-rows: repeat(2, 1fr); grid-template-columns: repeat(6, 1fr); gap: 15px; margin-top: 20px;">
+                <!-- 第一行 -->
+                <div class="gallery-item" style="border: 1px solid #eee; padding: 10px; height: 250px;">
+                    <img src="assets/sample_dataset/step1x-3d-show-case/1aea974b5c2b89855f5890262958b107.png" alt="Image 1" style="width: 100%; height: 100%; object-fit: contain;">
+                </div>
+                <div class="gallery-item" style="border: 1px solid #eee; padding: 10px; height: 250px;">
+                    <model-viewer
+                        style="height: 100%; width: 100%;"
+                        rotation-per-second="60deg"
+                        src="assets/sample_dataset/step1x-3d-show-case/1aea974b5c2b89855f5890262958b107-1.glb"
+                        environment-image="neutral"
+                        camera-target="0m 0m 0m"
+                        orientation="0deg 0deg 180deg"
+                        shadow-intensity="1"
+                        auto-rotate
+                        camera-controls>
+                    </model-viewer>
+                </div>
+             
+                <div class="gallery-item" style="border: 1px solid #eee; padding: 10px; height: 250px;">
+                    <model-viewer
+                        style="height: 100%; width: 100%;"
+                        rotation-per-second="60deg"
+                        src="assets/sample_dataset/step1x-3d-show-case/1aea974b5c2b89855f5890262958b107.glb"
+                        environment-image="neutral"
+                        camera-target="0m 0m 0m"
+                        orientation="0deg 0deg 180deg"
+                        shadow-intensity="1"
+                        auto-rotate
+                        camera-controls>
+                    </model-viewer>
+                </div>
+
+                <div class="gallery-item" style="border: 1px solid #eee; padding: 10px; height: 250px;">
+                  <img src="assets/sample_dataset/step1x-3d-show-case/cartoon dog 1.png" alt="Image 3" style="width: 100%; height: 100%; object-fit: contain;">
+               </div>
+
+                <div class="gallery-item" style="border: 1px solid #eee; padding: 10px; height: 250px;">
+                    <model-viewer
+                        style="height: 100%; width: 100%;"
+                        rotation-per-second="60deg"
+                        src="assets/sample_dataset/step1x-3d-show-case/cartoon dog 1-1.glb"
+                        environment-image="neutral"
+                        camera-target="0m 0m 0m"
+                        orientation="0deg 0deg 180deg"
+                        shadow-intensity="1"
+                        auto-rotate
+                        camera-controls>
+                    </model-viewer>
+                </div>
+                <div class="gallery-item" style="border: 1px solid #eee; padding: 10px; height: 250px;">
+                    <model-viewer
+                        style="height: 100%; width: 100%;"
+                        rotation-per-second="60deg"
+                        src="assets/sample_dataset/step1x-3d-show-case/cartoon dog 1.glb"
+                        environment-image="neutral"
+                        camera-target="0m 0m 0m"
+                        orientation="0deg 0deg 180deg"
+                        shadow-intensity="1"
+                        auto-rotate
+                        camera-controls>
+                    </model-viewer>
+                </div>
+                
+                <!-- 第二行 -->
+                <div class="gallery-item" style="border: 1px solid #eee; padding: 10px; height: 250px;">
+                    <img src="assets/sample_dataset/step1x-3d-show-case/input-6.png" alt="Image 1" style="width: 100%; height: 100%; object-fit: contain;">
+                </div>
+                <div class="gallery-item" style="border: 1px solid #eee; padding: 10px; height: 250px;">
+                    <model-viewer
+                        style="height: 100%; width: 100%;"
+                        rotation-per-second="60deg"
+                        src="assets/sample_dataset/step1x-3d-show-case/input-6-1.glb"
+                        environment-image="neutral"
+                        camera-target="0m 0m 0m"
+                        orientation="0deg 0deg 180deg"
+                        shadow-intensity="1"
+                        auto-rotate
+                        camera-controls>
+                    </model-viewer>
+                </div>
+                <div class="gallery-item" style="border: 1px solid #eee; padding: 10px; height: 250px;">
+                    <model-viewer
+                        style="height: 100%; width: 100%;"
+                        rotation-per-second="60deg"
+                        src="assets/sample_dataset/step1x-3d-show-case/input-6.glb"
+                        environment-image="neutral"
+                        camera-target="0m 0m 0m"
+                        orientation="0deg 0deg 180deg"
+                        shadow-intensity="1"
+                        auto-rotate
+                        camera-controls>
+                    </model-viewer>
+                </div>
+
+                <div class="gallery-item" style="border: 1px solid #eee; padding: 10px; height: 250px;">
+                  <img src="assets/sample_dataset/step1x-3d-show-case/input.png" alt="Image 3" style="width: 100%; height: 100%; object-fit: contain;">
+              </div>
+
+                <div class="gallery-item" style="border: 1px solid #eee; padding: 10px; height: 250px;">
+                    <model-viewer
+                        style="height: 100%; width: 100%;"
+                        rotation-per-second="60deg"
+                        src="assets/sample_dataset/step1x-3d-show-case/input-1.glb"
+                        environment-image="neutral"
+                        camera-target="0m 0m 0m"
+                        orientation="0deg 0deg 180deg"
+                        shadow-intensity="1"
+                        auto-rotate
+                        camera-controls>
+                    </model-viewer>
+                </div>
+            
+                <div class="gallery-item" style="border: 1px solid #eee; padding: 10px; height: 250px;">
+                  <model-viewer
+                      style="height: 100%; width: 100%;"
+                      rotation-per-second="60deg"
+                      src="assets/sample_dataset/step1x-3d-show-case/input.glb"
+                      environment-image="neutral"
+                      camera-target="0m 0m 0m"
+                      orientation="0deg 0deg 180deg"
+                      shadow-intensity="1"
+                      auto-rotate
+                      camera-controls>
+                  </model-viewer>
+                </div>
+
+                <div class="gallery-item" style="border: 1px solid #eee; padding: 10px; height: 250px;">
+                  <img src="assets/sample_dataset/step1x-3d-show-case/realistic handbag 2.png" alt="Image 1" style="width: 100%; height: 100%; object-fit: contain;">
+              </div>
+              <div class="gallery-item" style="border: 1px solid #eee; padding: 10px; height: 250px;">
+                  <model-viewer
+                      style="height: 100%; width: 100%;"
+                      rotation-per-second="60deg"
+                      src="assets/sample_dataset/step1x-3d-show-case/realistic handbag 2-1.glb"
+                      environment-image="neutral"
+                      camera-target="0m 0m 0m"
+                      orientation="0deg 0deg 180deg"
+                      shadow-intensity="1"
+                      auto-rotate
+                      camera-controls>
+                  </model-viewer>
+              </div>
+              <div class="gallery-item" style="border: 1px solid #eee; padding: 10px; height: 250px;">
+                  <model-viewer
+                      style="height: 100%; width: 100%;"
+                      rotation-per-second="60deg"
+                      src="assets/sample_dataset/step1x-3d-show-case/realistic handbag 2.glb"
+                      environment-image="neutral"
+                      camera-target="0m 0m 0m"
+                      orientation="0deg 0deg 180deg"
+                      shadow-intensity="1"
+                      auto-rotate
+                      camera-controls>
+                  </model-viewer>
+              </div>
+
+              <div class="gallery-item" style="border: 1px solid #eee; padding: 10px; height: 250px;">
+                <img src="assets/sample_dataset/step1x-3d-show-case/Unknown-12.png" alt="Image 3" style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
+
+              <div class="gallery-item" style="border: 1px solid #eee; padding: 10px; height: 250px;">
+                  <model-viewer
+                      style="height: 100%; width: 100%;"
+                      rotation-per-second="60deg"
+                      src="assets/sample_dataset/step1x-3d-show-case/Unknown-12-1.glb"
+                      environment-image="neutral"
+                      camera-target="0m 0m 0m"
+                      orientation="0deg 0deg 180deg"
+                      shadow-intensity="1"
+                      auto-rotate
+                      camera-controls>
+                  </model-viewer>
+              </div>
+          
+              <div class="gallery-item" style="border: 1px solid #eee; padding: 10px; height: 250px;">
+                <model-viewer
+                    style="height: 100%; width: 100%;"
+                    rotation-per-second="60deg"
+                    src="assets/sample_dataset/step1x-3d-show-case/Unknown-12.glb"
+                    environment-image="neutral"
+                    camera-target="0m 0m 0m"
+                    orientation="0deg 0deg 180deg"
+                    shadow-intensity="1"
+                    auto-rotate
+                    camera-controls>
+                </model-viewer>
+              </div>
+              
+
+              <div class="gallery-item" style="border: 1px solid #eee; padding: 10px; height: 250px;">
+                <img src="assets/sample_dataset/step1x-3d-show-case/pencil sketch style fire hydrant 1.png" alt="Image 3" style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
+
+              <div class="gallery-item" style="border: 1px solid #eee; padding: 10px; height: 250px;">
+                  <model-viewer
+                      style="height: 100%; width: 100%;"
+                      rotation-per-second="60deg"
+                      src="assets/sample_dataset/step1x-3d-show-case/pencil sketch style fire hydrant 1-1.glb"
+                      environment-image="neutral"
+                      camera-target="0m 0m 0m"
+                      orientation="0deg 0deg 180deg"
+                      shadow-intensity="1"
+                      auto-rotate
+                      camera-controls>
+                  </model-viewer>
+              </div>
+          
+              <div class="gallery-item" style="border: 1px solid #eee; padding: 10px; height: 250px;">
+                <model-viewer
+                    style="height: 100%; width: 100%;"
+                    rotation-per-second="60deg"
+                    src="assets/sample_dataset/step1x-3d-show-case/pencil sketch style fire hydrant 1.glb"
+                    environment-image="neutral"
+                    camera-target="0m 0m 0m"
+                    orientation="0deg 0deg 180deg"
+                    shadow-intensity="1"
+                    auto-rotate
+                    camera-controls>
+                </model-viewer>
+              </div>
+
+              <div class="gallery-item" style="border: 1px solid #eee; padding: 10px; height: 250px;">
+                <img src="assets/sample_dataset/step1x-3d-show-case/pencil sketch style dog 2.png" alt="Image 3" style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
+
+              <div class="gallery-item" style="border: 1px solid #eee; padding: 10px; height: 250px;">
+                  <model-viewer
+                      style="height: 100%; width: 100%;"
+                      rotation-per-second="60deg"
+                      src="assets/sample_dataset/step1x-3d-show-case/pencil sketch style dog 2-1.glb"
+                      environment-image="neutral"
+                      camera-target="0m 0m 0m"
+                      orientation="0deg 0deg 180deg"
+                      shadow-intensity="1"
+                      auto-rotate
+                      camera-controls>
+                  </model-viewer>
+              </div>
+          
+              <div class="gallery-item" style="border: 1px solid #eee; padding: 10px; height: 250px;">
+                <model-viewer
+                    style="height: 100%; width: 100%;"
+                    rotation-per-second="60deg"
+                    src="assets/sample_dataset/step1x-3d-show-case/pencil sketch style dog 2.glb"
+                    environment-image="neutral"
+                    camera-target="0m 0m 0m"
+                    orientation="0deg 0deg 180deg"
+                    shadow-intensity="1"
+                    auto-rotate
+                    camera-controls>
+                </model-viewer>
+              </div>
+
+              </div>
+            </div>
+
+              </div>
+            </div>
+
+            
+            <!-- 2行6列布局结束 -->
+        </div>
+    </section>
+    
+    <section class="hero" id="teaser" style="margin: 50px 0;">
+      <div class="container is-max-desktop">
+        <h3 class="title is-4">Controllable 3D generation with symmetry or asymmetry geometry</h3>
+    
+        <!-- 使用6列的网格结构 -->
+        <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 15px; margin-top: 20px;">
+          
+          <!-- 每列独立容器 -->
+          <!-- 第1列 -->
+          <div style="grid-column: 1;">
+            <!-- 列标题 -->
+            <div style="text-align: center; padding: 8px; background: #f0f0f0; border-radius: 4px; margin-bottom: 10px;">Input</div>
+            <!-- 内容区 -->
+            <div style="border: 1px solid #eee; height: 250px;">
+              <img src="assets/label-glb/20250507-231512.png" style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
+            <div style="border: 1px solid #eee; height: 250px;">
+              <img src="assets/sample_dataset/geometry-comparison/4f7fa693b57246445c608c002378b061.png" style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
+            <div style="border: 1px solid #eee; height: 250px;">
+              <img src="assets/label-glb/20250507-231454.png" style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
+          </div>
+    
+          <!-- 第2列 -->
+          <div style="grid-column: 2;">
+            <div style="text-align: center; padding: 8px; background: #f0f0f0; border-radius: 4px; margin-bottom: 10px;">Symmetry</div>
+            <div style="border: 1px solid #eee; height: 250px;">
+                <model-viewer
+                    style="height: 100%; width: 100%;"
+                    rotation-per-second="60deg"
+                    src="assets/label-glb/dinov2reglarge518_clip+label-fluxflow-dit1300m-118wdata-fp16-x-/20250507-231512.glb"
+                    environment-image="neutral"
+                    camera-target="0m 0m 0m"
+                    orientation="0deg 0deg 180deg"
+                    shadow-intensity="1"
+                    auto-rotate
+                    camera-controls>
+                </model-viewer>
+            </div>
+            <div style="border: 1px solid #eee; height: 250px;">
+                <model-viewer
+                    style="height: 100%; width: 100%;"
+                    rotation-per-second="60deg"
+                    src="assets/label-glb/dinov2reglarge518_clip+label-fluxflow-dit1300m-118wdata-fp16-x-/20250507-231444.glb"
+                    environment-image="neutral"
+                    camera-target="0m 0m 0m"
+                    orientation="0deg 0deg 180deg"
+                    shadow-intensity="1"
+                    auto-rotate
+                    camera-controls>
+                </model-viewer>
+            </div>
+            <div style="border: 1px solid #eee; height: 250px;">
+              <model-viewer
+                  style="height: 100%; width: 100%;"
+                  rotation-per-second="60deg"
+                  src="assets/label-glb/dinov2reglarge518_clip+label-fluxflow-dit1300m-118wdata-fp16-x-/20250507-231454.glb"
+                  environment-image="neutral"
+                  camera-target="0m 0m 0m"
+                  orientation="0deg 0deg 180deg"
+                  shadow-intensity="1"
+                  auto-rotate
+                  camera-controls>
+              </model-viewer>
+          </div>
+          </div>
+
+          <div style="grid-column: 3;">
+            <div style="text-align: center; padding: 8px; background: #f0f0f0; border-radius: 4px; margin-bottom: 10px;">Asymmetry</div>
+            <div style="border: 1px solid #eee; height: 250px;">
+                <model-viewer
+                    style="height: 100%; width: 100%;"
+                    rotation-per-second="60deg"
+                    src="assets/label-glb/dinov2reglarge518_clip+label-fluxflow-dit1300m-118wdata-fp16-asymmetry-/20250507-231512.glb"
+                    environment-image="neutral"
+                    camera-target="0m 0m 0m"
+                    orientation="0deg 0deg 180deg"
+                    shadow-intensity="1"
+                    auto-rotate
+                    camera-controls>
+                </model-viewer>
+            </div>
+            <div style="border: 1px solid #eee; height: 250px;">
+                <model-viewer
+                    style="height: 100%; width: 100%;"
+                    rotation-per-second="60deg"
+                    src="assets/label-glb/dinov2reglarge518_clip+label-fluxflow-dit1300m-118wdata-fp16-asymmetry-/20250507-231444.glb"
+                    environment-image="neutral"
+                    camera-target="0m 0m 0m"
+                    orientation="0deg 0deg 180deg"
+                    shadow-intensity="1"
+                    auto-rotate
+                    camera-controls>
+                </model-viewer>
+            </div>
+            <div style="border: 1px solid #eee; height: 250px;">
+              <model-viewer
+                  style="height: 100%; width: 100%;"
+                  rotation-per-second="60deg"
+                  src="assets/label-glb/dinov2reglarge518_clip+label-fluxflow-dit1300m-118wdata-fp16-asymmetry-/20250507-231454.glb"
+                  environment-image="neutral"
+                  camera-target="0m 0m 0m"
+                  orientation="0deg 0deg 180deg"
+                  shadow-intensity="1"
+                  auto-rotate
+                  camera-controls>
+              </model-viewer>
+          </div>
+        </div>
+          
+        <div style="grid-column: 4;">
+          <!-- 列标题 -->
+          <div style="text-align: center; padding: 8px; background: #f0f0f0; border-radius: 4px; margin-bottom: 10px;">Input</div>
+          <!-- 内容区 -->
+          <div style="border: 1px solid #eee; height: 250px;">
+            <img src="assets/label-glb/20250507-231458.png" style="width: 100%; height: 100%; object-fit: contain;">
+          </div>
+          <div style="border: 1px solid #eee; height: 250px;">
+            <img src="assets/label-glb/20250507-231508.png" style="width: 100%; height: 100%; object-fit: contain;">
+          </div>
+          <div style="border: 1px solid #eee; height: 250px;">
+            <img src="assets/label-glb/20250507-231505.png" style="width: 100%; height: 100%; object-fit: contain;">
+          </div>
+        </div>
+
+
+        <div style="grid-column: 5;">
+          <div style="text-align: center; padding: 8px; background: #f0f0f0; border-radius: 4px; margin-bottom: 10px;">Symmetry</div>
+          <div style="border: 1px solid #eee; height: 250px;">
+              <model-viewer
+                  style="height: 100%; width: 100%;"
+                  rotation-per-second="60deg"
+                  src="assets/label-glb/dinov2reglarge518_clip+label-fluxflow-dit1300m-118wdata-fp16-x-/20250507-231458.glb"
+                  environment-image="neutral"
+                  camera-target="0m 0m 0m"
+                  orientation="0deg 0deg 180deg"
+                  shadow-intensity="1"
+                  auto-rotate
+                  camera-controls>
+              </model-viewer>
+          </div>
+          <div style="border: 1px solid #eee; height: 250px;">
+              <model-viewer
+                  style="height: 100%; width: 100%;"
+                  rotation-per-second="60deg"
+                  src="assets/label-glb/dinov2reglarge518_clip+label-fluxflow-dit1300m-118wdata-fp16-x-/20250507-231508.glb"
+                  environment-image="neutral"
+                  camera-target="0m 0m 0m"
+                  orientation="0deg 0deg 180deg"
+                  shadow-intensity="1"
+                  auto-rotate
+                  camera-controls>
+              </model-viewer>
+          </div>
+          <div style="border: 1px solid #eee; height: 250px;">
+            <model-viewer
+                style="height: 100%; width: 100%;"
+                rotation-per-second="60deg"
+                src="assets/label-glb/dinov2reglarge518_clip+label-fluxflow-dit1300m-118wdata-fp16-x-/20250507-231505.glb"
+                environment-image="neutral"
+                camera-target="0m 0m 0m"
+                orientation="0deg 0deg 180deg"
+                shadow-intensity="1"
+                auto-rotate
+                camera-controls>
+            </model-viewer>
+        </div>
+      </div>
+
+      <div style="grid-column: 6;">
+        <div style="text-align: center; padding: 8px; background: #f0f0f0; border-radius: 4px; margin-bottom: 10px;">Asymmetry</div>
+        <div style="border: 1px solid #eee; height: 250px;">
+            <model-viewer
+                style="height: 100%; width: 100%;"
+                rotation-per-second="60deg"
+                src="assets/label-glb/dinov2reglarge518_clip+label-fluxflow-dit1300m-118wdata-fp16-asymmetry-/20250507-231458.glb"
+                environment-image="neutral"
+                camera-target="0m 0m 0m"
+                orientation="0deg 0deg 180deg"
+                shadow-intensity="1"
+                auto-rotate
+                camera-controls>
+            </model-viewer>
+        </div>
+        <div style="border: 1px solid #eee; height: 250px;">
+            <model-viewer
+                style="height: 100%; width: 100%;"
+                rotation-per-second="60deg"
+                src="assets/label-glb/dinov2reglarge518_clip+label-fluxflow-dit1300m-118wdata-fp16-asymmetry-/20250507-231508.glb"
+                environment-image="neutral"
+                camera-target="0m 0m 0m"
+                orientation="0deg 0deg 180deg"
+                shadow-intensity="1"
+                auto-rotate
+                camera-controls>
+            </model-viewer>
+        </div>
+        <div style="border: 1px solid #eee; height: 250px;">
+          <model-viewer
+              style="height: 100%; width: 100%;"
+              rotation-per-second="60deg"
+              src="assets/label-glb/dinov2reglarge518_clip+label-fluxflow-dit1300m-118wdata-fp16-asymmetry-/20250507-231505.glb"
+              environment-image="neutral"
+              camera-target="0m 0m 0m"
+              orientation="0deg 0deg 180deg"
+              shadow-intensity="1"
+              auto-rotate
+              camera-controls>
+          </model-viewer>
+      </div>
+    </div>
+
+        </div>
+      </div>
+    </section>
+
+
+    <section class="hero" id="teaser" style="margin: 50px 0;">
+      <div class="container is-max-desktop">
+        <h3 class="title is-4">Controllable 3D generation with sharp, normal or smooth geometry.</h3>
+    
+        <!-- 使用6列的网格结构 -->
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 20px;">
+          
+          <!-- 每列独立容器 -->
+          <!-- 第1列 -->
+          <div style="grid-column: 1;">
+            <!-- 列标题 -->
+            <div style="text-align: center; padding: 8px; background: #f0f0f0; border-radius: 4px; margin-bottom: 10px;">Input</div>
+            <!-- 内容区 -->
+            <div style="border: 1px solid #eee; height: 250px;">
+              <img src="assets/label-glb/20250507-231501.png" style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
+            <div style="border: 1px solid #eee; height: 250px;">
+              <img src="assets/label-glb/20250507-231508.png" style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
+            <div style="border: 1px solid #eee; height: 250px;">
+              <img src="assets/label-glb/20250507-231512.png" style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
+          </div>
+    
+          <!-- 第2列 -->
+          <div style="grid-column: 2;">
+            <div style="text-align: center; padding: 8px; background: #f0f0f0; border-radius: 4px; margin-bottom: 10px;">Sharp</div>
+            <div style="border: 1px solid #eee; height: 250px;">
+                <model-viewer
+                    style="height: 100%; width: 100%;"
+                    rotation-per-second="60deg"
+                    src="assets/label-glb/dinov2reglarge518_clip+label-fluxflow-dit1300m-118wdata-fp16--sharp/20250507-231501.glb"
+                    environment-image="neutral"
+                    camera-target="0m 0m 0m"
+                    orientation="0deg 0deg 180deg"
+                    shadow-intensity="1"
+                    auto-rotate
+                    camera-controls>
+                </model-viewer>
+            </div>
+            <div style="border: 1px solid #eee; height: 250px;">
+                <model-viewer
+                    style="height: 100%; width: 100%;"
+                    rotation-per-second="60deg"
+                    src="assets/label-glb/dinov2reglarge518_clip+label-fluxflow-dit1300m-118wdata-fp16--sharp/20250507-231508.glb"
+                    environment-image="neutral"
+                    camera-target="0m 0m 0m"
+                    orientation="0deg 0deg 180deg"
+                    shadow-intensity="1"
+                    auto-rotate
+                    camera-controls>
+                </model-viewer>
+            </div>
+            <div style="border: 1px solid #eee; height: 250px;">
+              <model-viewer
+                  style="height: 100%; width: 100%;"
+                  rotation-per-second="60deg"
+                  src="assets/label-glb/dinov2reglarge518_clip+label-fluxflow-dit1300m-118wdata-fp16--sharp/20250507-231512.glb"
+                  environment-image="neutral"
+                  camera-target="0m 0m 0m"
+                  orientation="0deg 0deg 180deg"
+                  shadow-intensity="1"
+                  auto-rotate
+                  camera-controls>
+              </model-viewer>
+          </div>
+          </div>
+
+          <div style="grid-column: 3;">
+            <div style="text-align: center; padding: 8px; background: #f0f0f0; border-radius: 4px; margin-bottom: 10px;">Normal</div>
+            <div style="border: 1px solid #eee; height: 250px;">
+                <model-viewer
+                    style="height: 100%; width: 100%;"
+                    rotation-per-second="60deg"
+                    src="assets/label-glb/dinov2reglarge518_clip+label-fluxflow-dit1300m-118wdata-fp16--normal/20250507-231501.glb"
+                    environment-image="neutral"
+                    camera-target="0m 0m 0m"
+                    orientation="0deg 0deg 180deg"
+                    shadow-intensity="1"
+                    auto-rotate
+                    camera-controls>
+                </model-viewer>
+            </div>
+            <div style="border: 1px solid #eee; height: 250px;">
+                <model-viewer
+                    style="height: 100%; width: 100%;"
+                    rotation-per-second="60deg"
+                    src="assets/label-glb/dinov2reglarge518_clip+label-fluxflow-dit1300m-118wdata-fp16--normal/20250507-231508.glb"
+                    environment-image="neutral"
+                    camera-target="0m 0m 0m"
+                    orientation="0deg 0deg 180deg"
+                    shadow-intensity="1"
+                    auto-rotate
+                    camera-controls>
+                </model-viewer>
+            </div>
+            <div style="border: 1px solid #eee; height: 250px;">
+              <model-viewer
+                  style="height: 100%; width: 100%;"
+                  rotation-per-second="60deg"
+                  src="assets/label-glb/dinov2reglarge518_clip+label-fluxflow-dit1300m-118wdata-fp16--normal/20250507-231512.glb"
+                  environment-image="neutral"
+                  camera-target="0m 0m 0m"
+                  orientation="0deg 0deg 180deg"
+                  shadow-intensity="1"
+                  auto-rotate
+                  camera-controls>
+              </model-viewer>
+          </div>
+        </div>
+          
+        <div style="grid-column: 4;">
+          <div style="text-align: center; padding: 8px; background: #f0f0f0; border-radius: 4px; margin-bottom: 10px;">Smooth</div>
+          <div style="border: 1px solid #eee; height: 250px;">
+              <model-viewer
+                  style="height: 100%; width: 100%;"
+                  rotation-per-second="60deg"
+                  src="assets/label-glb/dinov2reglarge518_clip+label-fluxflow-dit1300m-118wdata-fp16--smooth/20250507-231501.glb"
+                  environment-image="neutral"
+                  camera-target="0m 0m 0m"
+                  orientation="0deg 0deg 180deg"
+                  shadow-intensity="1"
+                  auto-rotate
+                  camera-controls>
+              </model-viewer>
+          </div>
+          <div style="border: 1px solid #eee; height: 250px;">
+              <model-viewer
+                  style="height: 100%; width: 100%;"
+                  rotation-per-second="60deg"
+                  src="assets/label-glb/dinov2reglarge518_clip+label-fluxflow-dit1300m-118wdata-fp16--smooth/20250507-231508.glb"
+                  environment-image="neutral"
+                  camera-target="0m 0m 0m"
+                  orientation="0deg 0deg 180deg"
+                  shadow-intensity="1"
+                  auto-rotate
+                  camera-controls>
+              </model-viewer>
+          </div>
+          <div style="border: 1px solid #eee; height: 250px;">
+            <model-viewer
+                style="height: 100%; width: 100%;"
+                rotation-per-second="60deg"
+                src="assets/label-glb/dinov2reglarge518_clip+label-fluxflow-dit1300m-118wdata-fp16--smooth/20250507-231512.glb"
+                environment-image="neutral"
+                camera-target="0m 0m 0m"
+                orientation="0deg 0deg 180deg"
+                shadow-intensity="1"
+                auto-rotate
+                camera-controls>
+            </model-viewer>
+        </div>
+      </div>
+
+        </div>
+      </div>
+    </section>
+
+    <section class="hero" id="teaser" style="margin: 50px 0;">
+      <div class="container is-max-desktop">
+        <h3 class="title is-4">Qualitative comparison with SOTA methods on textured mesh</h3>
+    
+        <!-- 使用6列的网格结构 -->
+        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 15px; margin-top: 20px;">
+          
+          <!-- 每列独立容器 -->
+          <!-- 第1列 -->
+          <div style="grid-column: 1;">
+            <!-- 列标题 -->
+            <div style="text-align: center; padding: 8px; background: #f0f0f0; border-radius: 4px; margin-bottom: 10px;">Input</div>
+            <!-- 内容区 -->
+            <div style="border: 1px solid #eee; height: 250px;">
+              <img src="assets/sample_dataset/geometry-comparison/1d4e4547eeaefbb8a4f63d3c07099b32.png" style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
+            <div style="border: 1px solid #eee; height: 250px;">
+              <img src="assets/sample_dataset/geometry-comparison/4f7fa693b57246445c608c002378b061.png" style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
+            <div style="border: 1px solid #eee; height: 250px;">
+              <img src="assets/sample_dataset/geometry-comparison/realistic chair 2.png" style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
+          </div>
+    
+          <!-- 第2列 -->
+          <div style="grid-column: 2;">
+            <div style="text-align: center; padding: 8px; background: #f0f0f0; border-radius: 4px; margin-bottom: 10px;">Step1x-3D</div>
+            <div style="border: 1px solid #eee; height: 250px;">
+                <model-viewer
+                    style="height: 100%; width: 100%;"
+                    rotation-per-second="60deg"
+                    src="assets/sample_dataset/geometry-comparison/step-1d4e4547eeaefbb8a4f63d3c07099b32.glb"
+                    environment-image="neutral"
+                    camera-target="0m 0m 0m"
+                    orientation="0deg 0deg 180deg"
+                    shadow-intensity="1"
+                    auto-rotate
+                    camera-controls>
+                </model-viewer>
+            </div>
+            <div style="border: 1px solid #eee; height: 250px;">
+                <model-viewer
+                    style="height: 100%; width: 100%;"
+                    rotation-per-second="60deg"
+                    src="assets/sample_dataset/geometry-comparison/step-4f7fa693b57246445c608c002378b061.glb"
+                    environment-image="neutral"
+                    camera-target="0m 0m 0m"
+                    orientation="0deg 0deg 180deg"
+                    shadow-intensity="1"
+                    auto-rotate
+                    camera-controls>
+                </model-viewer>
+            </div>
+            <div style="border: 1px solid #eee; height: 250px;">
+              <model-viewer
+                  style="height: 100%; width: 100%;"
+                  rotation-per-second="60deg"
+                  src="assets/sample_dataset/geometry-comparison/step-realistic chair 2.glb"
+                  environment-image="neutral"
+                  camera-target="0m 0m 0m"
+                  orientation="0deg 0deg 180deg"
+                  shadow-intensity="1"
+                  auto-rotate
+                  camera-controls>
+              </model-viewer>
+          </div>
+          </div>
+
+          <div style="grid-column: 3;">
+            <div style="text-align: center; padding: 8px; background: #f0f0f0; border-radius: 4px; margin-bottom: 10px;">Hunyuan3D2.0</div>
+            <div style="border: 1px solid #eee; height: 250px;">
+                <model-viewer
+                    style="height: 100%; width: 100%;"
+                    rotation-per-second="60deg"
+                    src="assets/sample_dataset/geometry-comparison/hy-1d4e4547eeaefbb8a4f63d3c07099b32.glb"
+                    environment-image="neutral"
+                    camera-target="0m 0m 0m"
+                    orientation="0deg 0deg 180deg"
+                    shadow-intensity="1"
+                    auto-rotate
+                    camera-controls>
+                </model-viewer>
+            </div>
+            <div style="border: 1px solid #eee; height: 250px;">
+                <model-viewer
+                    style="height: 100%; width: 100%;"
+                    rotation-per-second="60deg"
+                    src="assets/sample_dataset/geometry-comparison/hy-4f7fa693b57246445c608c002378b061.glb"
+                    environment-image="neutral"
+                    camera-target="0m 0m 0m"
+                    orientation="0deg 0deg 180deg"
+                    shadow-intensity="1"
+                    auto-rotate
+                    camera-controls>
+                </model-viewer>
+            </div>
+            <div style="border: 1px solid #eee; height: 250px;">
+              <model-viewer
+                  style="height: 100%; width: 100%;"
+                  rotation-per-second="60deg"
+                  src="assets/sample_dataset/geometry-comparison/hy-realistic chair 2.glb"
+                  environment-image="neutral"
+                  camera-target="0m 0m 0m"
+                  orientation="0deg 0deg 180deg"
+                  shadow-intensity="1"
+                  auto-rotate
+                  camera-controls>
+              </model-viewer>
+          </div>
+          </div>
+
+          <div style="grid-column: 4;">
+            <div style="text-align: center; padding: 8px; background: #f0f0f0; border-radius: 4px; margin-bottom: 10px;">Meshy-4</div>
+            <div style="border: 1px solid #eee; height: 250px;">
+                <model-viewer
+                    style="height: 100%; width: 100%;"
+                    rotation-per-second="60deg"
+                    src="assets/sample_dataset/geometry-comparison/meshy-1d4e4547eeaefbb8a4f63d3c07099b32.glb"
+                    environment-image="neutral"
+                    camera-target="0m 0m 0m"
+                    orientation="0deg 0deg 180deg"
+                    shadow-intensity="1"
+                    auto-rotate
+                    camera-controls>
+                </model-viewer>
+            </div>
+            <div style="border: 1px solid #eee; height: 250px;">
+                <model-viewer
+                    style="height: 100%; width: 100%;"
+                    rotation-per-second="60deg"
+                    src="assets/sample_dataset/geometry-comparison/meshy-4f7fa693b57246445c608c002378b061.glb"
+                    environment-image="neutral"
+                    camera-target="0m 0m 0m"
+                    orientation="0deg 0deg 180deg"
+                    shadow-intensity="1"
+                    auto-rotate
+                    camera-controls>
+                </model-viewer>
+            </div>
+            <div style="border: 1px solid #eee; height: 250px;">
+              <model-viewer
+                  style="height: 100%; width: 100%;"
+                  rotation-per-second="60deg"
+                  src="assets/sample_dataset/geometry-comparison/meshy-realistic chair 2.glb"
+                  environment-image="neutral"
+                  camera-target="0m 0m 0m"
+                  orientation="0deg 0deg 180deg"
+                  shadow-intensity="1"
+                  auto-rotate
+                  camera-controls>
+              </model-viewer>
+          </div>
+          </div>
+
+          <div style="grid-column: 5;">
+            <div style="text-align: center; padding: 8px; background: #f0f0f0; border-radius: 4px; margin-bottom: 10px;">Rodin-v1.5</div>
+            <div style="border: 1px solid #eee; height: 250px;">
+                <model-viewer
+                    style="height: 100%; width: 100%;"
+                    rotation-per-second="60deg"
+                    src="assets/sample_dataset/geometry-comparison/rodin-1d4e4547eeaefbb8a4f63d3c07099b32.glb"
+                    environment-image="neutral"
+                    camera-target="0m 0m 0m"
+                    orientation="0deg 0deg 180deg"
+                    shadow-intensity="1"
+                    auto-rotate
+                    camera-controls>
+                </model-viewer>
+            </div>
+            <div style="border: 1px solid #eee; height: 250px;">
+                <model-viewer
+                    style="height: 100%; width: 100%;"
+                    rotation-per-second="60deg"
+                    src="assets/sample_dataset/geometry-comparison/rodin-4f7fa693b57246445c608c002378b061.glb"
+                    environment-image="neutral"
+                    camera-target="0m 0m 0m"
+                    orientation="0deg 0deg 180deg"
+                    shadow-intensity="1"
+                    auto-rotate
+                    camera-controls>
+                </model-viewer>
+            </div>
+            <div style="border: 1px solid #eee; height: 250px;">
+              <model-viewer
+                  style="height: 100%; width: 100%;"
+                  rotation-per-second="60deg"
+                  src="assets/sample_dataset/geometry-comparison/rodin-realistic chair 2.glb"
+                  environment-image="neutral"
+                  camera-target="0m 0m 0m"
+                  orientation="0deg 0deg 180deg"
+                  shadow-intensity="1"
+                  auto-rotate
+                  camera-controls>
+              </model-viewer>
+          </div>
+          </div>
+          
+          <div style="grid-column: 6;">
+            <div style="text-align: center; padding: 8px; background: #f0f0f0; border-radius: 4px; margin-bottom: 10px;">Trellis</div>
+            <div style="border: 1px solid #eee; height: 250px;">
+                <model-viewer
+                    style="height: 100%; width: 100%;"
+                    rotation-per-second="60deg"
+                    src="assets/sample_dataset/geometry-comparison/trellis-1d4e4547eeaefbb8a4f63d3c07099b32.glb"
+                    environment-image="neutral"
+                    camera-target="0m 0m 0m"
+                    orientation="0deg 0deg 180deg"
+                    shadow-intensity="1"
+                    auto-rotate
+                    camera-controls>
+                </model-viewer>
+            </div>
+            <div style="border: 1px solid #eee; height: 250px;">
+                <model-viewer
+                    style="height: 100%; width: 100%;"
+                    rotation-per-second="60deg"
+                    src="assets/sample_dataset/geometry-comparison/trellis-4f7fa693b57246445c608c002378b061.glb"
+                    environment-image="neutral"
+                    camera-target="0m 0m 0m"
+                    orientation="0deg 0deg 180deg"
+                    shadow-intensity="1"
+                    auto-rotate
+                    camera-controls>
+                </model-viewer>
+            </div>
+            <div style="border: 1px solid #eee; height: 250px;">
+              <model-viewer
+                  style="height: 100%; width: 100%;"
+                  rotation-per-second="60deg"
+                  src="assets/sample_dataset/geometry-comparison/trellis-realistic chair 2.glb"
+                  environment-image="neutral"
+                  camera-target="0m 0m 0m"
+                  orientation="0deg 0deg 180deg"
+                  shadow-intensity="1"
+                  auto-rotate
+                  camera-controls>
+              </model-viewer>
+            </div>
+        </div>
+
+          <div style="grid-column: 7;">
+            <div style="text-align: center; padding: 8px; background: #f0f0f0; border-radius: 4px; margin-bottom: 10px;">Tripo-v2.5</div>
+            <div style="border: 1px solid #eee; height: 250px;">
+                <model-viewer
+                    style="height: 100%; width: 100%;"
+                    rotation-per-second="60deg"
+                    src="assets/sample_dataset/geometry-comparison/tripo-1d4e4547eeaefbb8a4f63d3c07099b32.glb"
+                    environment-image="neutral"
+                    camera-target="0m 0m 0m"
+                    orientation="0deg 0deg 180deg"
+                    shadow-intensity="1"
+                    auto-rotate
+                    camera-controls>
+                </model-viewer>
+            </div>
+            <div style="border: 1px solid #eee; height: 250px;">
+                <model-viewer
+                    style="height: 100%; width: 100%;"
+                    rotation-per-second="60deg"
+                    src="assets/sample_dataset/geometry-comparison/tripo-4f7fa693b57246445c608c002378b061.glb"
+                    environment-image="neutral"
+                    camera-target="0m 0m 0m"
+                    orientation="0deg 0deg 180deg"
+                    shadow-intensity="1"
+                    auto-rotate
+                    camera-controls>
+                </model-viewer>
+            </div>
+            <div style="border: 1px solid #eee; height: 250px;">
+              <model-viewer
+                  style="height: 100%; width: 100%;"
+                  rotation-per-second="60deg"
+                  src="assets/sample_dataset/geometry-comparison/tripo-realistic chair 2.glb"
+                  environment-image="neutral"
+                  camera-target="0m 0m 0m"
+                  orientation="0deg 0deg 180deg"
+                  shadow-intensity="1"
+                  auto-rotate
+                  camera-controls>
+              </model-viewer>
+          </div>
+          </div>
+          <!-- 剩余列结构相同（3-6列）... -->
+          
+        </div>
+      </div>
+    </section>
+
+  <section class="hero" id="teaser" style="margin-bottom: 50px; margin-top: 50px;">
+    <div class="container is-max-desktop">
+      <!--/ Concurrent Work. -->
+      <div class="columns is-centered">
+        <div class="column is-full-width">
+          <h2 class="title is-3">Acknowledgements</h2>
+          <div class="content has-text-justified">
+            <p>We would like to thank the following projects: 
+              <a href="https://github.com/black-forest-labs/flux">FLUX</a>, 
+              <a href="https://github.com/facebookresearch/dinov2">DINOv2</a>, 
+              <a href="https://github.com/huanngzh/MV-Adapter">MV-Adapter</a>, 
+              <a href="https://arxiv.org/abs/2406.13897">CLAY</a>, 
+              <a href="https://github.com/NeuralCarver/Michelangelo">Michelango</a>, 
+              <a href="https://github.com/wyysf-98/CraftsMan3D">CraftsMan3D</a>, 
+              <a href="https://github.com/VAST-AI-Research/TripoSG">TripoSG</a>, 
+              <a href="https://github.com/Seed3D/Dora">Dora</a>, 
+              <a href="https://github.com/Tencent/Hunyuan3D-2">Hunyuan3D 2.0</a>, 
+              <a href="https://github.com/Tencent/FlashVDM">FlashVDM</a>, 
+              <a href="https://github.com/huggingface/diffusers">diffusers</a> 
+              and <a href="https://huggingface.co">HuggingFace</a> 
+              for their open exploration and contributions.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="BibTeX">
+    <div class="container is-max-desktop content">
+      <h2 class="title">BibTeX</h2>
+      <pre>
+<code>@article{li2025step1x3dhighfidelitycontrollablegeneration,
+    title={Step1X-3D: Towards High-Fidelity and Controllable Generation of Textured 3D Assets}, 
+    author={Weiyu Li and Xuanyang Zhang and Zheng Sun and Di Qi and Hao Li and Wei Cheng and Weiwei Cai and Shihao Wu and Jiarui Liu and Zihao Wang and Xiao Chen and Feipeng Tian and Jianxiong Pan and Zeming Li and Gang Yu and Xiangyu Zhang and Daxin Jiang and Ping Tan},
+    journal={arXiv preprint arxiv:2505.07747}
+    year={2025}
+}
+</code></pre>
+    </div>
+  </section>
+
+
+  <footer class="footer">
+    <div class="container">
+      <div class="columns is-centered">
+        <div class="column is-8">
+          <div class="content">
+            <p style="text-align:center">
+              Source code mainly borrowed from <a href="https://keunhong.com/">Keunhong Park</a>'s <a
+                href="https://nerfies.github.io/">Nerfies website</a>.
+            </p>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+
+
+  <!--    <script src="js/index.js"></script>-->
+
+</body>
+
+</html>
